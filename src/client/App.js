@@ -1,4 +1,5 @@
 import React from 'react'
+import Stats, { statsBus } from './Stats'
 import ClientEngineFactory from '../core/misc/ClientEngineFactory'
 import Game from '../core/Game'
 import Transport from './Transport'
@@ -10,7 +11,14 @@ export default function App() {
   React.useEffect(() => {
     const engine = ClientEngineFactory(canvasRef.current)
     const game = new Game(engine)
+    const render = game.render
     const transport = new Transport()
+
+    game.render = () => {
+      const fps = game.engine.getFps()
+      statsBus.emitStats('FPS', Math.round(fps))
+      render()
+    }
 
     transport.onPlayersStateChanged(game.playerObjects.onPlayersChanged)
     transport.onCurrentPlayerStateReceived(() => {
@@ -28,6 +36,9 @@ export default function App() {
   }, [ canvasRef ])
 
   return (
-      <canvas ref={canvasRef} className='renderCanvas' />
+      <>
+        <canvas ref={canvasRef} className='renderCanvas' />
+        <Stats />
+      </>
   )
 }

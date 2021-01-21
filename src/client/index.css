@@ -15,3 +15,26 @@ body {
   display: block;
   position: fixed;
 }
+
+.stats {
+  top: 0;
+  right: 0;
+  width: 10vw;
+  height: 5vw;
+  display: block;
+  position: fixed;
+  padding: 1vw;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.5);
+}
+.stats__item {
+  display: flex;
+  font-size: 1vw;
+  color: #149414;
+  margin-bottom: 0.35vw;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+.stats__title {
+  width: 3vw;
+  flex-shrink: 0;
+}

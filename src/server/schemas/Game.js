@@ -7,11 +7,13 @@ class GameSchema extends Schema {
     constructor() {
         super()
 
+        this.time = Date.now()
         this.players = new MapSchema()
     }
 }
 
 schema.defineTypes(GameSchema, {
+    time: 'uint64',
     players: { map: PlayerSchema }
 })
 

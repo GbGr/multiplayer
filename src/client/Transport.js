@@ -1,4 +1,5 @@
 import { Client } from 'colyseus.js'
+import { statsBus } from './Stats'
 
 export default class Transport {
     constructor() {
@@ -32,6 +33,7 @@ export default class Transport {
     }
 
     _onStateChange = (newState) => {
+        statsBus.emitStats('PING', Date.now() - newState.time)
         this._onPlayersStateChangedHandlers.forEach((handler) => handler(newState.players))
 
         if (!this.currentPlayerHasSpawned) {

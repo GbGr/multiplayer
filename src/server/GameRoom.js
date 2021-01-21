@@ -12,29 +12,9 @@ class GameRoom extends Room {
         this.engine = ServerEngineFactory()
         this.game = new Game(this.engine)
 
-        this.onMessage('MOVE', (client, moveDirection) => {
-            const playerGameObject = this.game.playerObjects.players.get(client.sessionId)
+        this.onMessage('MOVE', this.onMoveMessage)
 
-            if (!playerGameObject) throw new Error('playerGameObject doesn\'t exists')
-
-            playerGameObject.applyMoveDirection(moveDirection)
-
-        })
-
-        this.setSimulationInterval((deltaTime) => {
-            this.game.render(deltaTime)
-            this.game.playerObjects.players.forEach((player) => {
-                const playerSchema = this.state.players.get(player.id)
-                if (!playerSchema) throw new Error(`Player schema #${player.id} doesn't exists`)
-                playerSchema.position.x = player.mesh.position.x
-                playerSchema.position.y = player.mesh.position.y
-                playerSchema.position.z = player.mesh.position.z
-                playerSchema.rotationQuaternion.x = player.mesh.rotationQuaternion.x
-                playerSchema.rotationQuaternion.y = player.mesh.rotationQuaternion.y
-                playerSchema.rotationQuaternion.z = player.mesh.rotationQuaternion.z
-                playerSchema.rotationQuaternion.w = player.mesh.rotationQuaternion.w
-            })
-        }, 1000 / 60)
+        this.setSimulationInterval(this.tick, 1000 / 60)
     }
 
     onJoin(client) {
@@ -45,6 +25,31 @@ class GameRoom extends Room {
 
     onLeave(client, consented) {
         this.state.players.delete(client.id)
+    }
+
+    tick = (deltaTime) => {
+        this.game.render(deltaTime)
+        this.state.time = Date.now()
+        this.game.playerObjects.players.forEach((player) => {
+            const playerSchema = this.state.players.get(player.id)
+            if (!playerSchema) throw new Error(`Player schema #${player.id} doesn't exists`)
+            playerSchema.position.x = player.mesh.position.x
+            playerSchema.position.y = player.mesh.position.y
+            playerSchema.position.z = player.mesh.position.z
+            playerSchema.rotationQuaternion.x = player.mesh.rotationQuaternion.x
+            playerSchema.rotationQuaternion.y = player.mesh.rotationQuaternion.y
+            playerSchema.rotationQuaternion.z = player.mesh.rotationQuaternion.z
+            playerSchema.rotationQuaternion.w = player.mesh.rotationQuaternion.w
+        })
+    }
+
+    onMoveMessage = (client, moveDirection) => {
+        const playerGameObject = this.game.playerObjects.players.get(client.sessionId)
+
+        if (!playerGameObject) throw new Error('playerGameObject doesn\'t exists')
+
+        playerGameObject.applyMoveDirection(moveDirection)
+
     }
 }
 
