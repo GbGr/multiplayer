@@ -7,8 +7,9 @@ import CreateGround from './Meshes/GroundFactory'
 import PlayerObjects from './PlayerObjects'
 
 export default class Game {
-    constructor(engine) {
+    constructor(engine, ticker) {
         this.engine = engine
+        this.ticker = ticker
         this.scene = new Scene(this.engine)
         this.playerObjects = new PlayerObjects()
         this.camera = new UniversalCamera('camera', new Vector3(0, 20, -10), this.scene)
@@ -22,9 +23,14 @@ export default class Game {
         this.engine.runRenderLoop(this.render)
     }
 
-    render = (dt) => {
-        dt = dt || this.engine.getDeltaTime()
+    preRender() {
+        this.ticker.tick()
+        const dt = this.ticker.getDeltaTime()
         this.playerObjects.players.forEach((playerGameObject) => playerGameObject.update(dt))
+    }
+
+    render = () => {
+        this.preRender()
         this.scene.render()
     }
 

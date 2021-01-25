@@ -24,8 +24,7 @@ export default class GameObject {
         this.moveDirection.set(moveDirection.x, moveDirection.y, moveDirection.z)
     }
 
-    sync(player) {
-        // TODO: Just replace position and rotation for now
+    setFrom(player) {
         this.mesh.position.set(player.position.x, player.position.y, player.position.z)
 
         this.mesh.rotationQuaternion.x = player.rotationQuaternion.x

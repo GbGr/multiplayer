@@ -6,32 +6,35 @@ export default class PlayerObjects {
         this.players = new Map()
     }
 
-    onPlayersChanged = (playersMap) => {
-        playersMap.forEach((player) => {
-            if (this.players.has(player.id)) this.updatePlayer(player)
-            else this.createPlayer(player)
-        })
+    createPlayer(playerEntity) {
+        const playerGameObject = new GameObject(playerEntity, this.scene)
 
-        this.players.forEach((playerGameObject) => {
-            if (!playersMap.has(playerGameObject.id)) {
-                this.removePlayer(playerGameObject)
-            }
-        })
+        this.players.set(playerEntity.id, playerGameObject)
     }
 
-    createPlayer(player) {
-        const playerGameObject = new GameObject(player, this.scene)
-
-        this.players.set(player.id, playerGameObject)
-    }
-
-    updatePlayer(player) {
-        const playerGameObject = this.players.get(player.id)
-        playerGameObject.sync(player)
+    updatePlayer(playerEntity) {
+        const playerGameObject = this.players.get(playerEntity.id)
+        playerGameObject.setFrom(playerEntity)
     }
 
     removePlayer(playerGameObject) {
         playerGameObject.dispose()
         this.players.delete(playerGameObject.id)
+    }
+
+    applyState({ players }) {
+        Object.keys(players).forEach((playerId) => {
+            if (this.players.has(playerId)) {
+                this.updatePlayer(players[playerId])
+            } else {
+                this.createPlayer(players[playerId])
+            }
+        })
+
+        this.players.forEach((player) => {
+            if (!players.hasOwnProperty(player.id)) {
+                this.removePlayer(player)
+            }
+        })
     }
 }
