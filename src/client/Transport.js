@@ -1,5 +1,6 @@
 import { statsBus } from './Stats'
 import State from './State'
+import InputBuffer, { Command } from './InputBuffer'
 
 const LATENCY_CHECKS_COUNT = 5
 const LATENCY_CHECK_INTERVAL = 10000
@@ -9,11 +10,15 @@ export default class Transport {
         this.latency = 0
         this.clientId = null
         this.isConnected = false
+        this.renderDelay = 50
         this._onCurrentPlayerStateReceivedHandlers = []
         this._onPlayersStateChangedHandlers = []
         this.latencyChecks = []
         this.state = new State()
+        this.inputBuffer = new InputBuffer()
         this.client = new WebSocket(`ws://localhost:${process.env.PORT_OR_SOCKET || 8000}`)
+        console.log(this)
+        statsBus.onRenderDelayChange((renderDelay) => this.renderDelay = renderDelay)
     }
 
     connect() {
@@ -99,8 +104,12 @@ export default class Transport {
         this._onCurrentPlayerStateReceivedHandlers.push(handler)
     }
 
-    sendMoveCommand(moveDirection) {
-        this.client.send(JSON.stringify({ type: 'MOVE', moveDirection: { x: moveDirection.x, y: moveDirection.y, z: moveDirection.z } }))
+    /**
+     * Send command to server
+     * @param command {Command}
+     */
+    sendCommand(command) {
+        this.client.send(JSON.stringify({ type: command.name, moveDirection: { x: command.moveDirection.x, y: command.moveDirection.y, z: command.moveDirection.z } }))
     }
 
     _onStateChange = (newState) => {

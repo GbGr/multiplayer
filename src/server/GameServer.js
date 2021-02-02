@@ -74,6 +74,8 @@ export default class GameServer {
     onDisconnect = (wsClient) => () => {
         this.clients.delete(wsClient.id)
         this.gameSchema.players.delete(wsClient.id)
+        const playerGameObject = this.game.playerObjects.players.get(wsClient.id)
+        this.game.playerObjects.removePlayer(playerGameObject)
     }
 
     simulateLatency(ms) {

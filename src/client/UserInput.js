@@ -4,6 +4,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector'
 const userInput = new class {
     constructor() {
         this.moveDirection = new Vector3()
+        this.oldMoveDirection = new Vector3()
         this.inputChangeHandlers = []
         window.addEventListener('keydown', this._onKeyDown)
         window.addEventListener('keyup', this._onKeyUp)
@@ -14,6 +15,8 @@ const userInput = new class {
     }
 
     _emitInputChange() {
+        if (this.oldMoveDirection.equals(this.moveDirection)) return
+        this.oldMoveDirection.copyFrom(this.moveDirection)
         this.inputChangeHandlers.forEach((handler) => handler(this.moveDirection))
     }
 

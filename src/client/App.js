@@ -5,6 +5,7 @@ import Game from '../core/Game'
 import Transport from './Transport'
 import userInput from './UserInput'
 import ticker from './Ticker'
+import { Command } from './InputBuffer'
 
 export default function App() {
   const canvasRef = React.createRef()
@@ -20,7 +21,7 @@ export default function App() {
       statsBus.emitStats('FPS', Math.round(fps))
 
       game.ticker.tick()
-      const state = transport.state.getInterpolatedState(game.ticker._time - transport.latency)
+      const state = transport.state.getInterpolatedState(game.ticker._time - transport.latency - transport.renderDelay)
       if (state) {
         game.playerObjects.applyState(state)
       }
@@ -31,8 +32,10 @@ export default function App() {
       const currentPlayerGameObject = game.playerObjects.players.get(transport.clientId)
       currentPlayerGameObject.mesh.material.diffuseColor.set(1, 0, 0)
       userInput.onInputChange((moveDirection) => {
-        // currentPlayerGameObject.applyMoveDirection(moveDirection)
-        transport.sendMoveCommand(moveDirection)
+        const command = new Command('MOVE', game.ticker.getTime(), moveDirection, currentPlayerGameObject.mesh.position, currentPlayerGameObject.mesh.rotationQuaternion)
+        transport.inputBuffer.push(command)
+        // TODO: apply command
+        transport.sendCommand(command)
       })
     })
 

@@ -16,11 +16,8 @@ export default class State extends Queue {
     getInterpolatedState(currentTime) {
         if (this.length < 2) return null
 
-        // TODO: Время клиента всегда впереди сервера, пока что интерполирую состояния если самый свежий пакет не старше данного значения
-        const INTERPOLATION_TRESHOLD = 40
-
-        const freshestState = this[this.length  - 1]
-        const futureState = this.find(({ time }) => time > currentTime) || (currentTime - freshestState.time) < INTERPOLATION_TRESHOLD ? freshestState : null
+        // const freshestState = this[this.length  - 1]
+        const futureState = this.find(({ time }) => time > currentTime)
         const pastState = !futureState ? null : this[this.indexOf(futureState) - 1]
 
         if (!futureState) {
