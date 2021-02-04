@@ -1,11 +1,16 @@
 import { Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector'
 import CharacterFactory from './Meshes/CharacterFactory'
+import UserControls from './misc/UserControls'
+
+const speed = 0.01
 
 export default class GameObject {
     constructor(player, scene) {
         this.id = player.id
         this.scene = scene
-        this.moveDirection = Vector3.Zero()
+        this.player = player
+        this.controls = new UserControls()
+        this.direction = new Vector3(0, 0, 0)
         this.mesh = CharacterFactory(player.id, '#000000', this.scene)
         this.mesh.position.set(player.position.x, player.position.y, player.position.z)
         this.mesh.rotationQuaternion = new Quaternion(
@@ -17,11 +22,17 @@ export default class GameObject {
     }
 
     update(deltaTime) {
-        this.moveDirection.scaleAndAddToRef(deltaTime * 0.01, this.mesh.position)
+        this.direction.z = this.controls.UP ? 1 : this.controls.DOWN ? -1 : 0
+        this.direction.x = this.controls.RIGHT ? 1 : this.controls.LEFT ? -1 : 0
+        this.direction.normalize().scaleAndAddToRef(deltaTime * speed, this.mesh.position)
     }
 
-    applyMoveDirection(moveDirection) {
-        this.moveDirection.set(moveDirection.x, moveDirection.y, moveDirection.z)
+    /**
+     * Update player controls
+     * @param controls {UserControls}
+     */
+    applyControls(controls) {
+        this.controls.updateFrom(controls)
     }
 
     setFrom(player) {

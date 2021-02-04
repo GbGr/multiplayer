@@ -19,8 +19,8 @@ body {
 .stats {
   top: 0;
   right: 0;
-  width: 10vw;
-  height: 7vw;
+  width: 16vw;
+  height: 9vw;
   display: block;
   position: fixed;
   padding: 1vw;

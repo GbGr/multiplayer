@@ -1,11 +1,12 @@
+const WebSocket = require('ws')
 const Clock = require('@gamestdio/clock')
 const GameSchema = require('./schemas/Game')
 const PlayerSchema = require('./schemas/Player')
 const Vector3Schema = require('./schemas/Vector3')
 const QuaternionSchema = require('./schemas/Quaternion')
 const Game = require('../core/Game').default
+const { SERVER_TICK_DURATION } = require('../core/constants')
 const ServerEngineFactory = require('../core/misc/ServerEngineFactory').default
-const WebSocket = require('ws')
 
 const randomId = () => Math.random().toString(32).slice(2, 5)
 
@@ -13,13 +14,45 @@ export default class GameServer {
     constructor(wsServer) {
         this.clock = new Clock()
         this.clock.getDeltaTime = () => this.clock.deltaTime // TODO
+        this.clock.getTime = () => this.clock.currentTime // TODO
         this.wsServer = wsServer
         this.clients = new Map()
         this.gameSchema = new GameSchema()
-        this.intervalId = setInterval(this.tick, 1000 / 60)
+        this.intervalId = setInterval(this.tick, 1000 / SERVER_TICK_DURATION)
+        this.commands = {}
 
         this.engine = ServerEngineFactory()
         this.game = new Game(this.engine, this.clock)
+        this.game.preRender = () => {
+            // const prevTime = this.game.ticker.getTime()
+            this.game.ticker.tick()
+            const nextTime = this.game.ticker.getTime()
+            this.game.playerObjects.players.forEach((player) => {
+                if (!this.commands[player.id]) return
+                const playerCommands = this.commands[player.id]
+                if (playerCommands.length === 0) return
+
+                const commendsToRemove = []
+
+                for (let i = 0; i < playerCommands.length; i++) {
+                    const currentCommand = playerCommands[i]
+                    const nextCommand = playerCommands[i + 1]
+                    let dt = 0
+                    if (nextCommand) {
+                        commendsToRemove.push(currentCommand)
+                        dt = nextCommand.time - currentCommand.time - playerCommands[i].duration
+                    } else {
+                        dt = nextTime - currentCommand.time - playerCommands[i].duration
+                    }
+                    playerCommands[i].duration += dt
+                    player.applyControls(playerCommands[i].payload)
+                    player.update(dt)
+                }
+
+                this.commands[player.id] = this.commands[player.id].filter((command) => commendsToRemove.indexOf(command) === -1)
+            })
+
+        }
 
         this.wsServer.on('connection', this.onConnection)
     }
@@ -105,12 +138,11 @@ export default class GameServer {
         wsClient.send(JSON.stringify({ type: 'SYNC_TIME', clientSentAt: message.clientSentAt, serverSentAt: Date.now() }))
     }
 
-    onMoveMessage = (wsClient, { moveDirection }) => {
-        const playerGameObject = this.game.playerObjects.players.get(wsClient.id)
-
-        if (!playerGameObject) throw new Error('playerGameObject doesn\'t exists')
-
-        playerGameObject.applyMoveDirection(moveDirection)
+    onMoveMessage = (wsClient, command) => {
+        command.playerId = wsClient.id
+        command.duration = 0
+        if (!this.commands[wsClient.id]) this.commands[wsClient.id] = []
+        this.commands[wsClient.id].push(command)
     }
 
 }

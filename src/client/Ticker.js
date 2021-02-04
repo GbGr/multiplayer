@@ -6,7 +6,8 @@ const ticker = new class {
     }
 
     tick() {
-        this._time += (Date.now() - this._time) * this._factor
+        this._deltaTime = (Date.now() - this._time) * this._factor
+        this._time += this._deltaTime
     }
 
     getTime() {

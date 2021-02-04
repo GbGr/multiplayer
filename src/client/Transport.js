@@ -1,6 +1,7 @@
 import { statsBus } from './Stats'
 import State from './State'
-import InputBuffer, { Command } from './InputBuffer'
+import InputBuffer from './InputBuffer'
+import { BASE_RENDER_DELAY, SERVER_TICK_DURATION } from '../core/constants'
 
 const LATENCY_CHECKS_COUNT = 5
 const LATENCY_CHECK_INTERVAL = 10000
@@ -10,15 +11,15 @@ export default class Transport {
         this.latency = 0
         this.clientId = null
         this.isConnected = false
-        this.renderDelay = 50
+        this.renderDelay = BASE_RENDER_DELAY
         this._onCurrentPlayerStateReceivedHandlers = []
         this._onPlayersStateChangedHandlers = []
         this.latencyChecks = []
         this.state = new State()
         this.inputBuffer = new InputBuffer()
-        this.client = new WebSocket(`ws://localhost:${process.env.PORT_OR_SOCKET || 8000}`)
-        console.log(this)
-        statsBus.onRenderDelayChange((renderDelay) => this.renderDelay = renderDelay)
+        this.client = new WebSocket(`ws://192.168.1.4:${process.env.PORT_OR_SOCKET || 8000}`)
+        statsBus.onRenderDelayChange((renderDelay) => this.renderDelay = SERVER_TICK_DURATION + renderDelay)
+        this.client.onerror = (e) => alert(e)
     }
 
     connect() {
@@ -28,21 +29,16 @@ export default class Transport {
             this.client.onopen = (e) => {
                 this.isConnected = true
                 this.client.onmessage = ({ data }) => {
-                    // try {
-                        const message = JSON.parse(data)
-                        if (!this.clientId && message.type === 'SELF_JOINED' && message.player.id) {
-                            this.clientId = message.player.id
-                            this._onCurrentPlayerStateReceivedHandlers.forEach((handler) => handler(message.player))
-                            this.startLatencyCheck()
-                            setInterval(this.startLatencyCheck, LATENCY_CHECK_INTERVAL)
-                            resolve()
-                        } else {
-                            this.onMessage(message)
-                        }
-                    // } catch (e) {
-                    //     console.error(e)
-                    //     throw new Error('Incorrect message')
-                    // }
+                    const message = JSON.parse(data)
+                    if (!this.clientId && message.type === 'SELF_JOINED' && message.player.id) {
+                        this.clientId = message.player.id
+                        this._onCurrentPlayerStateReceivedHandlers.forEach((handler) => handler(message.player))
+                        this.startLatencyCheck()
+                        setInterval(this.startLatencyCheck, LATENCY_CHECK_INTERVAL)
+                        resolve()
+                    } else {
+                        this.onMessage(message)
+                    }
                 }
             }
         })
@@ -109,7 +105,7 @@ export default class Transport {
      * @param command {Command}
      */
     sendCommand(command) {
-        this.client.send(JSON.stringify({ type: command.name, moveDirection: { x: command.moveDirection.x, y: command.moveDirection.y, z: command.moveDirection.z } }))
+        this.client.send(command.serialize())
     }
 
     _onStateChange = (newState) => {

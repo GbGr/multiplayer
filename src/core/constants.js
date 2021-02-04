@@ -1,0 +1,2 @@
+export const SERVER_TICK_DURATION = 1000 / 60
+export const BASE_RENDER_DELAY = 350

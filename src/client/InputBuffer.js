@@ -7,20 +7,4 @@ export default class InputBuffer extends Queue {
     }
 }
 
-export class Command {
-    /**
-     *
-     * @param name {string}
-     * @param time {number}
-     * @param moveDirection {Vector3}
-     * @param position {Vector3}
-     * @param rotation {Quaternion}
-     */
-    constructor(name, time, moveDirection, position, rotation) {
-        this.name = name
-        this.time = time
-        this.moveDirection = moveDirection
-        this.position = position
-        this.rotation = rotation
-    }
-}
+

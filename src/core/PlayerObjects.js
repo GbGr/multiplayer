@@ -22,8 +22,9 @@ export default class PlayerObjects {
         this.players.delete(playerGameObject.id)
     }
 
-    applyState({ players }) {
+    applyState({ players }, currentPlayerId) {
         Object.keys(players).forEach((playerId) => {
+            if (playerId === currentPlayerId) return
             if (this.players.has(playerId)) {
                 this.updatePlayer(players[playerId])
             } else {

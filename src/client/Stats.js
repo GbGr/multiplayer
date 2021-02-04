@@ -1,8 +1,9 @@
 import React from 'react'
+import { BASE_RENDER_DELAY } from '../core/constants'
 
 export const statsBus = new class {
     constructor() {
-        this.stats = { FPS: 0, PING: 0 }
+        this.stats = { FPS: 0, PING: 0, PKG: 0 }
         this.statsChangedHandlers = []
         this.renderDelayChangeHandlers = []
     }
@@ -27,7 +28,7 @@ export const statsBus = new class {
 
 export default function Stats() {
     const [ stats, setStats ] = React.useState(statsBus.stats)
-    const [ renderDelay, setRenderDelay ] = React.useState(50)
+    const [ renderDelay, setRenderDelay ] = React.useState(BASE_RENDER_DELAY)
 
     React.useEffect(() => {
         statsBus.onStatChanged((newStats) => setStats(newStats))
@@ -45,7 +46,7 @@ export default function Stats() {
                 <div className='stats__title'>{renderDelay}ms</div>
                 <input
                     min={0}
-                    max={100}
+                    max={500}
                     type='range'
                     value={renderDelay}
                     onChange={(e) => {
