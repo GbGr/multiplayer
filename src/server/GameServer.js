@@ -18,13 +18,12 @@ export default class GameServer {
         this.wsServer = wsServer
         this.clients = new Map()
         this.gameSchema = new GameSchema()
-        this.intervalId = setInterval(this.tick, 1000 / SERVER_TICK_DURATION)
+        this.intervalId = setInterval(this.tick, SERVER_TICK_DURATION)
         this.commands = {}
 
         this.engine = ServerEngineFactory()
         this.game = new Game(this.engine, this.clock)
         this.game.preRender = () => {
-            // const prevTime = this.game.ticker.getTime()
             this.game.ticker.tick()
             const nextTime = this.game.ticker.getTime()
             this.game.playerObjects.players.forEach((player) => {
@@ -32,14 +31,14 @@ export default class GameServer {
                 const playerCommands = this.commands[player.id]
                 if (playerCommands.length === 0) return
 
-                const commendsToRemove = []
+                const commandsToRemove = []
 
                 for (let i = 0; i < playerCommands.length; i++) {
                     const currentCommand = playerCommands[i]
                     const nextCommand = playerCommands[i + 1]
                     let dt = 0
                     if (nextCommand) {
-                        commendsToRemove.push(currentCommand)
+                        commandsToRemove.push(currentCommand)
                         dt = nextCommand.time - currentCommand.time - playerCommands[i].duration
                     } else {
                         dt = nextTime - currentCommand.time - playerCommands[i].duration
@@ -49,7 +48,7 @@ export default class GameServer {
                     player.update(dt)
                 }
 
-                this.commands[player.id] = this.commands[player.id].filter((command) => commendsToRemove.indexOf(command) === -1)
+                this.commands[player.id] = this.commands[player.id].filter((command) => commandsToRemove.indexOf(command) === -1)
             })
 
         }
@@ -79,7 +78,7 @@ export default class GameServer {
         wsClient.id = randomId()
         this.clients.set(wsClient.id, wsClient)
 
-        const newPlayer = new PlayerSchema(wsClient.id, Vector3Schema.Random(), new QuaternionSchema())
+        const newPlayer = new PlayerSchema(wsClient.id, new Vector3Schema(), new QuaternionSchema())
         this.gameSchema.players.set(wsClient.id, newPlayer)
         this.game.playerObjects.createPlayer(newPlayer.toJSON())
 

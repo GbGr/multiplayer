@@ -58,6 +58,8 @@ export default class Transport {
     }
 
     onStateMessage = (message) => {
+        if (!statsBus.stats['PKG']) statsBus.stats['PKG'] = 0
+        statsBus.stats['PKG']++
         this.state.push(message.state)
     }
 

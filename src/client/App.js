@@ -19,12 +19,77 @@ export default function App() {
     game.preRender = () => {
       const fps = game.engine.getFps()
       statsBus.emitStats('FPS', Math.round(fps))
+      // const currentPlayer = game.playerObjects.players.get(transport.clientId)
+
+      // check input buffers
+      // const deleteInputs = []
+      // transport.inputBuffer.forEach((input) => {
+      //   // check input the same in server
+      //   const position = transport.state.getPlayerPositionByTime(transport.clientId, input.time)
+      //   if (position) {
+      //     if (Math.abs(input.position.length() - position.length()) < 0.7) {
+      //       deleteInputs.push(input)
+      //     } else {
+      //       // alert('Нужно перезапустить инпуты')
+      //       debugger
+      //     }
+      //   }
+      // })
+
+      // if (transport.inputBuffer.length >= 2) {
+      //   for (let i = 0; i < transport.inputBuffer.length; i++) {
+      //     const input = transport.inputBuffer[i]
+      //     const nextInput = transport.inputBuffer[i + 1]
+      //     const statePosition = transport.state.getPlayerPositionByTime(transport.clientId, input.time)
+      //     if (!statePosition || !nextInput) {
+      //       continue
+      //     }
+      //     if (Math.abs(nextInput.position.length() - statePosition.length()) < 0.1) {
+      //       // input correct
+      //       deleteInputs.push(input)
+      //     } else {
+      //       // input incorrect
+      //
+      //       if (i === 0) {
+      //         console.error(Math.abs(input.position.length() - statePosition.length()))
+      //         // debugger
+      //         // throw new Error('WTF')
+      //       }
+      //       for (let j = i - 1; j < transport.inputBuffer.length; j++) {
+      //         const currentCommand = transport.inputBuffer[i]
+      //         const nextCommand = transport.inputBuffer[i + 1]
+      //         let dt = 0
+      //         if (nextCommand) {
+      //           dt = nextCommand.time - currentCommand.time
+      //         } else {
+      //           dt = game.ticker.getTime() - currentCommand.time
+      //         }
+      //         currentPlayer.mesh.position.copyFrom(currentCommand.position)
+      //         currentPlayer.applyControls(currentCommand.payload)
+      //         currentPlayer.update(dt)
+      //         console.warn('input reapplyed')
+      //         deleteInputs.push(currentCommand)
+      //       }
+      //       break
+      //     }
+      //   }
+      // }
+
+
+      // deleteInputs.forEach((command) => {
+      //   transport.inputBuffer.splice(transport.inputBuffer.indexOf(command), 1)
+      // })
+
       game.ticker.tick()
-      const renderTime = game.ticker._time - transport.latency * 2 - SERVER_TICK_DURATION - transport.renderDelay
+
+      // Interpolation
+      const renderTime = game.ticker._time - transport.latency * 2 - transport.renderDelay
       const state = transport.state.getInterpolatedState(renderTime)
       if (state) {
         game.playerObjects.applyState(state, transport.clientId)
       }
+
+      // Client prediction
       const currentPlayerGameObject = game.playerObjects.players.get(transport.clientId)
       currentPlayerGameObject.update(game.ticker.getDeltaTime())
     }
@@ -36,6 +101,7 @@ export default function App() {
       userInput.onInputChange((input) => {
         const command = new Command('MOVE', game.ticker.getTime(), input, currentPlayerGameObject.mesh.position, currentPlayerGameObject.mesh.rotationQuaternion)
         transport.inputBuffer.push(command)
+        statsBus.emitInputBufferChanges(transport.inputBuffer)
         currentPlayerGameObject.applyControls(command.payload)
         transport.sendCommand(command)
       })

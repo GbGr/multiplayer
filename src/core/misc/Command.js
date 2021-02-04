@@ -13,8 +13,8 @@ export class Command {
         this.type = type
         this.time = time
         this.payload = payload
-        this.position = position
-        this.rotation = rotation
+        this.position = position.clone()
+        this.rotation = rotation.clone()
     }
 
     /**

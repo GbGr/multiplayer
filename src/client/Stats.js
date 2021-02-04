@@ -3,9 +3,14 @@ import { BASE_RENDER_DELAY } from '../core/constants'
 
 export const statsBus = new class {
     constructor() {
-        this.stats = { FPS: 0, PING: 0, PKG: 0 }
+        this.stats = { FPS: 0, PING: 0, }
         this.statsChangedHandlers = []
         this.renderDelayChangeHandlers = []
+        this.inputBufferHandlers = []
+    }
+
+    onInputBufferUpdate(handler) {
+        this.inputBufferHandlers.push(handler)
     }
 
     onRenderDelayChange(handler) {
@@ -24,14 +29,20 @@ export const statsBus = new class {
     emitRenderDelay(renderDelay) {
         this.renderDelayChangeHandlers.forEach((handler) => handler(renderDelay))
     }
+
+    emitInputBufferChanges(inputBuffer) {
+        this.inputBufferHandlers.forEach((handler) => handler(inputBuffer))
+    }
 }()
 
 export default function Stats() {
     const [ stats, setStats ] = React.useState(statsBus.stats)
+    const [ inputs, setInputs ] = React.useState([])
     const [ renderDelay, setRenderDelay ] = React.useState(BASE_RENDER_DELAY)
 
     React.useEffect(() => {
         statsBus.onStatChanged((newStats) => setStats(newStats))
+        statsBus.onInputBufferUpdate((inputs) => setInputs(inputs))
     }, [])
 
     return (
@@ -54,6 +65,15 @@ export default function Stats() {
                         statsBus.emitRenderDelay(Number(e.target.value))
                     }}
                 />
+            </div>
+            <h3>input buffer</h3>
+            <div className="stats__inputs">
+                {inputs.map((input, idx) => (
+                    <div className='input' key={idx}>
+                        <div className='input__idx'>#{idx}</div>
+                        <div className='input__time'>{Date.now() - input.time}ms</div>
+                    </div>
+                    ))}
             </div>
         </div>
     )

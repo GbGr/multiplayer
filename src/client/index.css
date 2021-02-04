@@ -19,13 +19,16 @@ body {
 .stats {
   top: 0;
   right: 0;
-  width: 16vw;
-  height: 9vw;
+  width: 20vw;
   display: block;
   position: fixed;
   padding: 1vw;
   box-sizing: border-box;
   background: rgba(0, 0, 0, 0.5);
+}
+.stats h3 {
+  color: #fff;
+  font-size: 1vw;
 }
 .stats__item {
   display: flex;
@@ -37,4 +40,12 @@ body {
 .stats__title {
   width: 3vw;
   flex-shrink: 0;
+}
+
+.input {
+  color: #149414;
+  display: flex;
+}
+.input__idx {
+  width: 3vw;
 }
