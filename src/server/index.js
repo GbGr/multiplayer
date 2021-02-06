@@ -9,7 +9,7 @@ const wsServer = new Server({
 })
 const gameServer = new GameServer(wsServer)
 
-gameServer.simulateLatency(60)
+gameServer.simulateLatency(100)
 
 httpServer.listen(PORT_OR_SOCKET, () => {
     console.log(`Server is listening on: http://localhost:${PORT_OR_SOCKET}`)

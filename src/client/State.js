@@ -2,7 +2,7 @@ import Queue from '../core/misc/Queue'
 import { Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector'
 import { statsBus } from './Stats'
 
-const STATE_QUEUE_LENGTH = 100
+const STATE_QUEUE_LENGTH = 10000
 
 const V3_BUFFER_1 = new Vector3()
 const V3_BUFFER_2 = new Vector3()
@@ -15,20 +15,11 @@ export default class State extends Queue {
     }
 
     getPlayerPositionByTime(playerId, time) {
-        const nearestState = getNearestStateByTime(this, time)
-        const stateIdx = this.indexOf(nearestState)
-        let futureState = null
-        let pastState = null
+        const futureState = this.find((state) => state.time >= time)
+        const futureStateIdx = this.indexOf(futureState)
+        const pastState = this[futureStateIdx - 1]
 
-        if (nearestState.time > time) {
-            futureState = nearestState
-            pastState = this[stateIdx - 1]
-        } else if (nearestState.time < time) {
-            futureState = this[stateIdx + 1]
-            pastState = nearestState
-        } else {
-            return copyVector3LikeToRef(nearestState.players[playerId].position, V3_BUFFER_1)
-        }
+        if (futureState && futureState.time === time) return copyVector3LikeToRef(futureState.players[playerId].position, V3_BUFFER_1)
 
         if (!futureState || !pastState) return null
 

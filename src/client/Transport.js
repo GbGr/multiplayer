@@ -17,7 +17,7 @@ export default class Transport {
         this.latencyChecks = []
         this.state = new State()
         this.inputBuffer = new InputBuffer()
-        this.client = new WebSocket(`ws://192.168.1.4:${process.env.PORT_OR_SOCKET || 8000}`)
+        this.client = new WebSocket(`ws://localhost:${process.env.PORT_OR_SOCKET || 8000}`)
         statsBus.onRenderDelayChange((renderDelay) => this.renderDelay = SERVER_TICK_DURATION + renderDelay)
         this.client.onerror = (e) => alert(e)
     }

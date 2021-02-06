@@ -24,7 +24,6 @@ export default class GameServer {
         this.engine = ServerEngineFactory()
         this.game = new Game(this.engine, this.clock)
         this.game.preRender = () => {
-            this.game.ticker.tick()
             const nextTime = this.game.ticker.getTime()
             this.game.playerObjects.players.forEach((player) => {
                 if (!this.commands[player.id]) return
@@ -69,6 +68,7 @@ export default class GameServer {
         this.clients.forEach((client) => {
             client.send(JSON.stringify({ type: 'STATE', state: this.gameSchema.toJSON() }))
         })
+        this.game.ticker.tick()
     }
 
     onConnection = (wsClient) => {
